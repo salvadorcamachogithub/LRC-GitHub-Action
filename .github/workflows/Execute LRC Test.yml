@@ -1,4 +1,4 @@
-name: LoadRunner Cloud Test
+name: Run LoadRunner Cloud Test
 
 on:
   workflow_dispatch:
@@ -6,6 +6,8 @@ on:
 jobs:
   run-lrc-test:
     runs-on: ubuntu-latest
+
+    environment: LRC
 
     steps:
       - name: Run test in LoadRunner Cloud
@@ -18,19 +20,31 @@ jobs:
 
         with:
           lrc_server: https://loadrunner-cloud.saas.microfocus.com
-          lrc_tenant: "${{ vars.LRC_TENANT }}"
-          lrc_project: "${{ vars.LRC_PROJECT }}"
-          lrc_test_id: "${{ vars.LRC_TEST_ID }}"
+
+          # Replace these with your actual values
+          lrc_tenant: "159221713"
+          lrc_project: "119"
+          lrc_test_id: "4522"
+
           lrc_output_dir: "./results"
           lrc_report_types: "pdf,docx,csv"
 
-      - name: Show Run ID
+      - name: Print Run ID
+        if: always()
         run: |
-          echo "LRC Run ID = ${{ steps.lrc_run_test.outputs.lrc_run_id }}"
+          echo "LRC Run ID: ${{ steps.lrc_run_test.outputs.lrc_run_id }}"
+
+      - name: List Downloaded Files
+        if: always()
+        run: |
+          echo "Results directory contents:"
+          ls -la ./results || true
 
       - name: Upload LRC Results
         if: always()
         uses: actions/upload-artifact@v4
+
         with:
           name: lrc-report-${{ steps.lrc_run_test.outputs.lrc_run_id }}
           path: ./results
+          if-no-files-found: warn
